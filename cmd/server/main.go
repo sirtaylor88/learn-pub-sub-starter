@@ -3,9 +3,8 @@ package main
 import (
 	"fmt"
 	"log"
-	"os"
-	"os/signal"
 
+	"github.com/sirtaylor88/learn-pub-sub-starter/internal/gamelogic"
 	"github.com/sirtaylor88/learn-pub-sub-starter/internal/pubsub"
 	"github.com/sirtaylor88/learn-pub-sub-starter/internal/routing"
 
@@ -26,20 +25,44 @@ func main() {
 	if err != nil {
 		log.Fatalf("Could not create new channel: %v", err)
 	}
-	err = pubsub.PublishJSON(
-		pubChannel,
-		routing.ExchangePerilDirect,
-		routing.PauseKey,
-		routing.PlayingState{IsPaused: true},
-	)
 
-	if err != nil {
-		log.Fatalf("Could not publish JSON data: %v", err)
+	gamelogic.PrintServerHelp()
+	var words []string
+	for {
+		words = gamelogic.GetInput()
+		if len(words) == 0 {
+			continue
+		}
+		switch words[0] {
+		case "pause":
+			err = pubsub.PublishJSON(
+				pubChannel,
+				routing.ExchangePerilDirect,
+				routing.PauseKey,
+				routing.PlayingState{IsPaused: true},
+			)
+			if err != nil {
+				log.Fatalf("Could not publish JSON data: %v", err)
+			}
+			log.Printf("Pause message sent!")
+
+		case "resume":
+			err = pubsub.PublishJSON(
+				pubChannel,
+				routing.ExchangePerilDirect,
+				routing.PauseKey,
+				routing.PlayingState{IsPaused: false},
+			)
+			if err != nil {
+				log.Fatalf("Could not publish JSON data: %v", err)
+			}
+			log.Printf("Resume message sent!")
+		case "quit":
+			log.Printf("Exiting!")
+			return
+		default:
+			log.Printf("invalid command!")
+		}
+
 	}
-	fmt.Println("Pause message sent!")
-
-	signalChan := make(chan os.Signal, 1)
-	signal.Notify(signalChan, os.Interrupt)
-	<-signalChan
-	fmt.Println("Connection is shutting down...")
 }
