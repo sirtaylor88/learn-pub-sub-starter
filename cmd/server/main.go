@@ -3,8 +3,10 @@ package main
 import (
 	"fmt"
 	"log"
-	"os/signal"
 	"os"
+	"os/signal"
+
+	"github.com/sirtaylor88/learn-pub-sub-starter/internal/pubsub"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 )
